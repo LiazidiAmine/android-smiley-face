@@ -1,12 +1,12 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 25
-    buildToolsVersion "25.0.0"
+    compileSdkVersion 24
+    buildToolsVersion "24.0.2"
     defaultConfig {
         applicationId "com.seedup.amine.smileyemotion"
-        minSdkVersion 15
-        targetSdkVersion 25
+        minSdkVersion 19
+        targetSdkVersion 21
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -29,6 +29,8 @@ dependencies {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
     compile 'com.facebook.android:facebook-android-sdk:[4,5)'
-    compile 'com.android.support:appcompat-v7:25.1.0'
     testCompile 'junit:junit:4.12'
+    compile 'com.android.support:support-v4:24.2.0'
+    compile 'com.android.support:design:24.2.0'
+    compile 'com.google.android.gms:play-services-vision:9.4.0+'
 }
