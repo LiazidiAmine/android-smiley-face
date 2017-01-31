@@ -45,7 +45,7 @@ import com.seedup.amine.smileyemotion.face.FaceGraphic;
 /**
  * Main Activity.
  */
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends Activity {
 
     // This is the request code that the SDK uses for startActivityForResult. See the code below
     // that references it. Messenger currently doesn't return any data back to the calling
