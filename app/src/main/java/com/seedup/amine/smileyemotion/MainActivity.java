@@ -412,7 +412,7 @@ public class MainActivity extends Activity {
                         Log.d("RESPONSE", response+"");
                         try {
                             JSONObject jObj = new JSONObject(response);
-                            String message = jObj.getString("message");
+                            String message = jObj.getString("hey");
 
                             Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
 
@@ -428,7 +428,8 @@ public class MainActivity extends Activity {
                 Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_LONG).show();
             }
         });
-        smr.addFile("image",picturePath);
+        smr.addStringParam("top","0.1");
+        smr.addFile("picture",picturePath);
         MyApplication.getInstance().addToRequestQueue(smr);
     }
 
