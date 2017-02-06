@@ -112,10 +112,11 @@ public class MainActivity extends Activity {
             public void onPictureTaken(byte[] bytes) {
                 Bitmap bitmapPicture
                         = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-                writeExternalToCache(bitmapPicture, new File(getExternalFilesDir(null) + "picture.jpeg"));//TODO GENERATE NAME
+                writeExternalToCache(bitmapPicture, new File(getExternalFilesDir(null) + "picture1.jpeg"));//TODO GENERATE NAME
             }
         };
 
+        bTakePicture = (Button)findViewById(R.id.takePicture);
         bTakePicture.setOnClickListener(new View.OnClickListener() {
             //TODO verifier si un visage est bien detecté
             @Override
@@ -433,16 +434,13 @@ public class MainActivity extends Activity {
             public void onErrorResponse(VolleyError error) {
                 Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_LONG).show();
             }
-        }){
-            @Override
-            public Map<String, String> getFilesToUpload(){
-                Map<String, String> map = new HashMap<>();
-                map.put("top","0.1");
-                return map;
-            }
-        };
+        });
         smr.addFile("picture",picturePath);
         MyApplication.getInstance().addToRequestQueue(smr);
+    }
+
+    public static int getPickImageRequest() {
+        q
     }
 
     /**
