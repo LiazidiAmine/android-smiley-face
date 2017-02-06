@@ -44,6 +44,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.seedup.amine.smileyemotion.face.FaceGraphic;
 import com.seedup.amine.smileyemotion.http.MyApplication;
@@ -96,6 +98,31 @@ public class MainActivity extends Activity {
 
         mPreview = (CameraSourcePreview) findViewById(R.id.preview);
         mGraphicOverlay = (GraphicOverlay) findViewById(R.id.faceOverlay);
+
+        final CameraSource.ShutterCallback shutter = new CameraSource.ShutterCallback() {
+            @Override
+            public void onShutter() {
+                AudioManager mgr = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+                mgr.playSoundEffect(AudioManager.FLAG_PLAY_SOUND);
+            }
+        };
+
+        final CameraSource.PictureCallback pictureCallback = new CameraSource.PictureCallback() {
+            @Override
+            public void onPictureTaken(byte[] bytes) {
+                Bitmap bitmapPicture
+                        = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+                writeExternalToCache(bitmapPicture, new File(getExternalFilesDir(null) + "picture.jpeg"));//TODO GENERATE NAME
+            }
+        };
+
+        bTakePicture.setOnClickListener(new View.OnClickListener() {
+            //TODO verifier si un visage est bien detecté
+            @Override
+            public void onClick(View v) {
+                mCameraSource.takePicture(shutter,pictureCallback);
+            }
+        });
 
         // Check for the camera permission before accessing the camera.  If the
         // permission is not granted yet, request permission.
@@ -325,30 +352,9 @@ public class MainActivity extends Activity {
         @Override
         public void onNewItem(int faceId, Face item) {
             mFaceGraphic.setId(faceId);
-            mPreview.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    mCameraSource.takePicture(shutter,pictureCallback);
-                }
-            });
+
         }
 
-        CameraSource.ShutterCallback shutter = new CameraSource.ShutterCallback() {
-            @Override
-            public void onShutter() {
-                AudioManager mgr = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-                mgr.playSoundEffect(AudioManager.FLAG_PLAY_SOUND);
-            }
-        };
-
-        CameraSource.PictureCallback pictureCallback = new CameraSource.PictureCallback() {
-            @Override
-            public void onPictureTaken(byte[] bytes) {
-                Bitmap bitmapPicture
-                        = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-                writeExternalToCache(bitmapPicture, new File(getExternalFilesDir(null) + "picture.jpeg"));
-            }
-        };
 
         /**
          * Update the position/characteristics of the face within the overlay.
@@ -427,8 +433,14 @@ public class MainActivity extends Activity {
             public void onErrorResponse(VolleyError error) {
                 Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_LONG).show();
             }
-        });
-        smr.addStringParam("top","0.1");
+        }){
+            @Override
+            public Map<String, String> getFilesToUpload(){
+                Map<String, String> map = new HashMap<>();
+                map.put("top","0.1");
+                return map;
+            }
+        };
         smr.addFile("picture",picturePath);
         MyApplication.getInstance().addToRequestQueue(smr);
     }
