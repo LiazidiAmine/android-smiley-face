@@ -19,7 +19,12 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.error.VolleyError;
+import com.android.volley.request.SimpleMultiPartRequest;
 import com.facebook.FacebookSdk;
 import com.facebook.appevents.AppEventsLogger;
 import com.facebook.messenger.MessengerUtils;
@@ -41,6 +46,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 import com.seedup.amine.smileyemotion.face.FaceGraphic;
+import com.seedup.amine.smileyemotion.http.MyApplication;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * Main Activity.
@@ -65,6 +74,10 @@ public class MainActivity extends Activity {
     private static final int RC_HANDLE_CAMERA_PERM = 2;
 
     private boolean mPicking = false;
+
+    private static final String BASE_URL = "http://192.168.1.20:8081/post";
+    private String filePath;
+    private static final int PICK_IMAGE_REQUEST = 1;
 
     //==============================================================================================
     // Activity Methods
@@ -370,8 +383,13 @@ public class MainActivity extends Activity {
     private void writeExternalToCache(Bitmap bitmap, File file) {
         try {
             file.createNewFile();
+            filePath = file.getAbsolutePath();
             Log.d("SmileyEmotion","Jpeg capture stored at "+file.getAbsolutePath() + "");
-
+            if(filePath != null){
+                sendToApi(filePath);
+            } else {
+                Toast.makeText(getApplicationContext(), "file picture error",Toast.LENGTH_LONG).show();
+            }
             FileOutputStream fos = new FileOutputStream(file);
             final BufferedOutputStream bos = new BufferedOutputStream(fos, BUFFER_SIZE);
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bos);
@@ -384,6 +402,34 @@ public class MainActivity extends Activity {
             e.printStackTrace();
         }
 
+    }
+
+    private void sendToApi(final String picturePath){
+        SimpleMultiPartRequest smr = new SimpleMultiPartRequest(Request.Method.POST, BASE_URL,
+                new Response.Listener<String>(){
+                    @Override
+                    public void onResponse(String response){
+                        Log.d("RESPONSE", response+"");
+                        try {
+                            JSONObject jObj = new JSONObject(response);
+                            String message = jObj.getString("message");
+
+                            Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
+
+                        } catch (JSONException e) {
+                            // JSON error
+                            e.printStackTrace();
+                            Toast.makeText(getApplicationContext(), "Json error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                        }
+                    }
+                }, new Response.ErrorListener(){
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_LONG).show();
+            }
+        });
+        smr.addFile("image",picturePath);
+        MyApplication.getInstance().addToRequestQueue(smr);
     }
 
     /**
