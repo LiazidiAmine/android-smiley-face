@@ -7,30 +7,34 @@ package com.seedup.amine.smileyemotion.face;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Point;
 import android.graphics.RectF;
+import android.util.Log;
 
 import com.google.android.gms.vision.face.Face;
+import com.google.android.gms.vision.face.Landmark;
 import com.seedup.amine.smileyemotion.camera.GraphicOverlay;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 /**
  * Graphic instance for rendering face position, orientation, and landmarks within an associated
  * graphic overlay view.
  */
 public class FaceGraphic extends GraphicOverlay.Graphic {
-    private static final float FACE_POSITION_RADIUS = 10.0f;
     private static final float ID_TEXT_SIZE = 40.0f;
+    private static final float BOX_STROKE_WIDTH = 5.0f;
     private static final float ID_Y_OFFSET = 50.0f;
     private static final float ID_X_OFFSET = -50.0f;
-    private static final float BOX_STROKE_WIDTH = 5.0f;
+
+    private float mFaceHappiness;
+    private float mEyeLeftOpen;
+    private float mEyeRightOpen;
 
     private static final int COLOR_CHOICES[] = {
-            Color.BLUE,
-            Color.CYAN,
-            Color.GREEN,
-            Color.MAGENTA,
-            Color.RED,
-            Color.WHITE,
-            Color.YELLOW
+            Color.BLUE
     };
     private static int mCurrentColorIndex = 0;
 
@@ -39,8 +43,6 @@ public class FaceGraphic extends GraphicOverlay.Graphic {
     private Paint mBoxPaint;
 
     private volatile Face mFace;
-    private int mFaceId;
-    private float mFaceHappiness;
 
     public FaceGraphic(GraphicOverlay overlay) {
         super(overlay);
@@ -60,11 +62,6 @@ public class FaceGraphic extends GraphicOverlay.Graphic {
         mBoxPaint.setStyle(Paint.Style.STROKE);
         mBoxPaint.setStrokeWidth(BOX_STROKE_WIDTH);
     }
-
-    public void setId(int id) {
-        mFaceId = id;
-    }
-
 
     /**
      * Updates the face instance from the detection of the most recent frame.  Invalidates the
@@ -89,6 +86,13 @@ public class FaceGraphic extends GraphicOverlay.Graphic {
         float x = translateX(face.getPosition().x + face.getWidth() / 2);
         float y = translateY(face.getPosition().y + face.getHeight() / 2);
 
+        // Happiness
+        mFaceHappiness = face.getIsSmilingProbability();
+
+        //Eyes
+        mEyeLeftOpen = mFace.getIsLeftEyeOpenProbability();
+        mEyeRightOpen = mFace.getIsRightEyeOpenProbability();
+
         // Draws a bounding box around the face.
         float xOffset = scaleX(face.getWidth() / 2.0f);
         float yOffset = scaleY(face.getHeight() / 2.0f);
@@ -96,6 +100,43 @@ public class FaceGraphic extends GraphicOverlay.Graphic {
         float top = y - yOffset;
         float right = x + xOffset;
         float bottom = y + yOffset;
+
+//        canvas.drawText("happiness: " + String.format("%.2f", mFaceHappiness), x - ID_X_OFFSET, y - ID_Y_OFFSET, mIdPaint);
+//        canvas.drawText("right eye: " + String.format("%.2f", mEyeRightOpen), x + ID_X_OFFSET * 2, y + ID_Y_OFFSET * 2, mIdPaint);
+//        canvas.drawText("left eye: " + String.format("%.2f", mEyeLeftOpen), x - ID_X_OFFSET*2, y - ID_Y_OFFSET*2, mIdPaint);
+
         canvas.drawRoundRect(new RectF(left, top, right, bottom),right,left,mBoxPaint);
+
+        drawFaceAnnotations(canvas);
+
+    }
+
+    /**
+     * Draws a small circle for each detected landmark, centered at the detected landmark position.
+     * <p>
+     *
+     * Note that eye landmarks are defined to be the midpoint between the detected eye corner
+     * positions, which tends to place the eye landmarks at the lower eyelid rather than at the
+     * pupil position.
+     */
+    private void drawFaceAnnotations(Canvas canvas) {
+        Paint paint = new Paint();
+        paint.setColor(Color.GREEN);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(10);
+        List<Point> landmarks = new ArrayList<>();
+
+        for (Landmark landmark : mFace.getLandmarks()) {
+            int cx = (int) translateX(landmark.getPosition().x);
+            int cy = (int) translateY(landmark.getPosition().y);
+            landmarks.add(new Point(cx, cy));
+        }
+        landmarks.add(new Point(
+                (int)translateX(mFace.getPosition().x + mFace.getWidth() / 2),
+                (int)translateY(mFace.getPosition().x + mFace.getHeight() / 2)));
+
+        for(Point p : landmarks){
+            canvas.drawPoint(p.x,p.y,paint);
+        }
     }
 }

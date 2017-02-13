@@ -82,8 +82,6 @@ public class MainActivity extends Activity {
     private static final String BASE_URL = "http://192.168.1.20:8081/post";
     private String filePath;
 
-    private Map<String,Float> positions = new HashMap<>();
-
     //==============================================================================================
     // Activity Methods
     //==============================================================================================
@@ -115,32 +113,9 @@ public class MainActivity extends Activity {
             public void onPictureTaken(byte[] bytes) {
                 Bitmap bitmapPicture
                         = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-                int intrinsicHeight = bitmapPicture.getHeight();
-                int intrinsicWidth = bitmapPicture.getWidth();
 
-                Log.d("Picture HEIGHT ",bitmapPicture.getHeight()+ "HEIGHT");
-                Log.d("Picture WIDTH ",bitmapPicture.getWidth()+ "WIDTH");
-
-                int bmap_right = positions.get("right").intValue();
-                int bmap_left = positions.get("left").intValue();
-                int bmap_bottom = positions.get("bottom").intValue();
-                int bmap_top = positions.get("top").intValue();
-
-                int right = ((bmap_right * intrinsicWidth) / 100) - (bmap_bottom % intrinsicHeight)/2;
-                int left = ((bmap_left * intrinsicWidth)/ 100) - (bmap_right % intrinsicWidth)/2;
-                int bottom = (bmap_bottom * intrinsicHeight) / 100;
-                int top = (bmap_top * intrinsicHeight) / 100;
-
-                final Rect r = new Rect(left,top,right,bottom);
-                Log.d("TOP",top+ "TOP");
-                Log.d("BOTTOM",bottom+ "BOTTOM");
-                Log.d("LEFT",left+ "LEFT");
-                Log.d("RIGHT",right+ "RIGHT");
-//                Bitmap cropped = Bitmap.createBitmap(bitmapPicture,left,top,right,bottom);
                 File f = new File(getExternalFilesDir(null) + "/pic011.jpeg");
                 writeExternalToCache(bitmapPicture, f);//TODO GENERATE NAME
-
-
             }
         };
 
@@ -212,7 +187,9 @@ public class MainActivity extends Activity {
 
         Context context = getApplicationContext();
         FaceDetector detector = new FaceDetector.Builder(context)
+                .setTrackingEnabled(true)
                 .setProminentFaceOnly(true)
+                .setLandmarkType(FaceDetector.ALL_LANDMARKS)
                 .setClassificationType(FaceDetector.ALL_CLASSIFICATIONS)
                 .build();
 
@@ -383,9 +360,6 @@ public class MainActivity extends Activity {
         public void onUpdate(FaceDetector.Detections<Face> detectionResults, Face face) {
             mOverlay.add(mFaceGraphic);
             mFaceGraphic.updateFace(face);
-            for(Map.Entry<String,Float> m : mFaceGraphic.getPosition().entrySet()){
-                positions.put(m.getKey(),m.getValue());
-            }
         }
 
         /**
@@ -407,9 +381,6 @@ public class MainActivity extends Activity {
             mOverlay.remove(mFaceGraphic);
         }
 
-        public Map<String,Float> getPositions(){
-            return mFaceGraphic.getPosition();
-        }
     }
 
     public static final int BUFFER_SIZE = 1024 * 8;
@@ -419,11 +390,7 @@ public class MainActivity extends Activity {
             filePath = file.getAbsolutePath();
 
             Log.d("SmileyEmotion","Jpeg capture stored at "+file.getAbsolutePath() + "");
-            if(filePath != null){
-                sendToApi(filePath);
-            } else {
-                Toast.makeText(getApplicationContext(), "file picture error",Toast.LENGTH_LONG).show();
-            }
+
             FileOutputStream fos = new FileOutputStream(file);
             final BufferedOutputStream bos = new BufferedOutputStream(fos, BUFFER_SIZE);
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bos);
@@ -436,37 +403,6 @@ public class MainActivity extends Activity {
             e.printStackTrace();
         }
 
-    }
-
-    private void sendToApi(final String picturePath){
-        SimpleMultiPartRequest smr = new SimpleMultiPartRequest(Request.Method.POST, BASE_URL,
-                new Response.Listener<String>(){
-                    @Override
-                    public void onResponse(String response){
-                        Log.d("RESPONSE", response+"");
-                        try {
-                            JSONObject jObj = new JSONObject(response);
-                            //String message = jObj.getString("hey");
-
-                            //Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
-
-                        } catch (JSONException e) {
-                            // JSON error
-                            e.printStackTrace();
-                            Toast.makeText(getApplicationContext(), "Json error: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                        }
-                    }
-                }, new Response.ErrorListener(){
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_LONG).show();
-            }
-        });
-        smr.addFile("picture",picturePath);
-        for(Map.Entry<String,Float> e : positions.entrySet()){
-            smr.addStringParam(e.getKey(),String.valueOf(e.getValue()));
-        }
-        MyApplication.getInstance().addToRequestQueue(smr);
     }
 
     /**
