@@ -191,7 +191,9 @@ public class MainActivity extends Activity {
                 .setProminentFaceOnly(true)
                 .setLandmarkType(FaceDetector.ALL_LANDMARKS)
                 .setClassificationType(FaceDetector.ALL_CLASSIFICATIONS)
+                .setMode(FaceDetector.FAST_MODE)
                 .build();
+
 
         detector.setProcessor(
                 new MultiProcessor.Builder<>(new GraphicFaceTrackerFactory())

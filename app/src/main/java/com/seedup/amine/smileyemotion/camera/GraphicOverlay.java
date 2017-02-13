@@ -5,11 +5,14 @@ package com.seedup.amine.smileyemotion.camera;
  */
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 
 import com.google.android.gms.vision.CameraSource;
+import com.seedup.amine.smileyemotion.R;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -40,6 +43,7 @@ public class GraphicOverlay extends View {
     private float mHeightScaleFactor = 1.0f;
     private int mFacing = CameraSource.CAMERA_FACING_BACK;
     private Set<Graphic> mGraphics = new HashSet<>();
+    private float radius;
 
     /**
      * Base class for a custom graphics object to be rendered within the graphic overlay.  Subclass
@@ -109,6 +113,19 @@ public class GraphicOverlay extends View {
 
     public GraphicOverlay(Context context, AttributeSet attrs) {
         super(context, attrs);
+
+        //get radius value
+        TypedArray a = context.getTheme().obtainStyledAttributes(
+                attrs,
+                R.styleable.faceOverlay,
+                0, 0
+        );
+
+        try{
+            radius = a.getDimension(R.styleable.faceOverlay_radius, 20.0f);
+        } finally {
+            a.recycle();
+        }
     }
 
     /**
@@ -172,5 +189,56 @@ public class GraphicOverlay extends View {
             }
         }
     }
+
+    public float getRadius(){
+        return radius;
+    }
+
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+
+        int desiredWidth = (int) radius*2+(int) Math.ceil((radius/1.70));
+        int desiredHeight = (int) radius*2+(int)Math.ceil((radius/1.70));
+
+        int widthMode = MeasureSpec.getMode(widthMeasureSpec);
+        int widthSize = MeasureSpec.getSize(widthMeasureSpec);
+        int heightMode = MeasureSpec.getMode(heightMeasureSpec);
+        int heightSize = MeasureSpec.getSize(heightMeasureSpec);
+
+        int width;
+        int height;
+
+        //Measure Width
+        if (widthMode == MeasureSpec.EXACTLY) {
+            //Must be this size
+            width = widthSize;
+        } else if (widthMode == MeasureSpec.AT_MOST) {
+            //Can't be bigger than...
+            width = Math.min(desiredWidth, widthSize);
+            Log.d("Width AT_MOST", "width: "+width);
+        } else {
+            //Be whatever you want
+            width = desiredWidth;
+            Log.d("Width ELSE", "width: "+width);
+
+        }
+
+        //Measure Height
+        if (heightMode == MeasureSpec.EXACTLY) {
+            //Must be this size
+            height = heightSize;
+        } else if (heightMode == MeasureSpec.AT_MOST) {
+            //Can't be bigger than...
+            height = Math.min(desiredHeight, heightSize);
+        } else {
+            //Be whatever you want
+            height = desiredHeight;
+        }
+
+        //MUST CALL THIS
+        setMeasuredDimension(width, height);
+    }
+
 }
 
