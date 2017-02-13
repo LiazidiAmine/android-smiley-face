@@ -10,12 +10,14 @@ import android.graphics.CornerPathEffect;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Point;
+import android.graphics.Rect;
 import android.graphics.RectF;
 import android.util.Log;
 
 import com.google.android.gms.vision.face.Face;
 import com.google.android.gms.vision.face.Landmark;
 import com.seedup.amine.smileyemotion.camera.GraphicOverlay;
+import com.seedup.amine.smileyemotion.face.shapes.SmileyFace;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -44,27 +46,16 @@ public class FaceGraphic extends GraphicOverlay.Graphic {
     private Paint mIdPaint;
     private Paint mBoxPaint;
 
+    private SmileyFace smiley;
+
     private volatile Face mFace;
 
-    Paint facePaint;
-    Paint mePaint;
-
-
     float radius;
-    float adjust;
-
-    float mouthLeftX, mouthRightX, mouthTopY, mouthBottomY;
-    RectF mouthRectF;
-    Path mouthPath;
-
-    RectF eyeLeftRectF, eyeRightRectF;
-    float eyeLeftX, eyeRightx, eyeTopY, eyeBottomY;
 
     public FaceGraphic(GraphicOverlay overlay) {
         super(overlay);
 
         radius = overlay.getRadius();
-        Log.d("RADIUS", radius+"");
 
         mCurrentColorIndex = (mCurrentColorIndex + 1) % COLOR_CHOICES.length;
         final int selectedColor = COLOR_CHOICES[mCurrentColorIndex];
@@ -80,56 +71,6 @@ public class FaceGraphic extends GraphicOverlay.Graphic {
         mBoxPaint.setColor(selectedColor);
         mBoxPaint.setStyle(Paint.Style.STROKE);
         mBoxPaint.setStrokeWidth(BOX_STROKE_WIDTH);
-
-        facePaint = new Paint();
-        facePaint.setColor(0xfffed325); // yellow
-        facePaint.setDither(true);
-        facePaint.setStrokeJoin(Paint.Join.ROUND);
-        facePaint.setStrokeCap(Paint.Cap.ROUND);
-        facePaint.setPathEffect(new CornerPathEffect(10) );
-        facePaint.setAntiAlias(true);
-        facePaint.setShadowLayer(4, 2, 2, 0x80000000);
-
-        mePaint = new Paint();
-        mePaint.setColor(0xff2a2a2a);
-        mePaint.setDither(true);
-        mePaint.setStyle(Paint.Style.STROKE);
-        mePaint.setStrokeJoin(Paint.Join.ROUND);
-        mePaint.setStrokeCap(Paint.Cap.ROUND);
-        mePaint.setPathEffect(new CornerPathEffect(10) );
-        mePaint.setAntiAlias(true);
-        mePaint.setStrokeWidth(radius / 14.0f);
-
-
-
-        adjust = radius / 3.2f;
-
-
-        // Left Eye
-        eyeLeftX = radius-(radius*0.43f);
-        eyeRightx = eyeLeftX+ (radius*0.3f);
-        eyeTopY = radius-(radius*0.5f);
-        eyeBottomY = eyeTopY + (radius*0.4f);
-
-        eyeLeftRectF = new RectF(eyeLeftX+adjust,eyeTopY+adjust,eyeRightx+adjust,eyeBottomY+adjust);
-
-        // Right Eye
-        eyeLeftX = eyeRightx + (radius*0.3f);
-        eyeRightx = eyeLeftX + (radius*0.3f);
-
-        eyeRightRectF = new RectF(eyeLeftX+adjust,eyeTopY+adjust,eyeRightx+adjust,eyeBottomY+adjust);
-
-
-        // Smiley Mouth
-        mouthLeftX = radius-(radius/2.0f);
-        mouthRightX = mouthLeftX+ radius;
-        mouthTopY = radius - (radius*0.2f);
-        mouthBottomY = mouthTopY + (radius*0.5f);
-
-        mouthRectF = new RectF(mouthLeftX+adjust,mouthTopY+adjust,mouthRightX+adjust,mouthBottomY+adjust);
-        mouthPath = new Path();
-
-        mouthPath.arcTo(mouthRectF, 30, 120, true);
 
     }
 
@@ -175,9 +116,11 @@ public class FaceGraphic extends GraphicOverlay.Graphic {
 //        canvas.drawText("right eye: " + String.format("%.2f", mEyeRightOpen), x + ID_X_OFFSET * 2, y + ID_Y_OFFSET * 2, mIdPaint);
 //        canvas.drawText("left eye: " + String.format("%.2f", mEyeLeftOpen), x - ID_X_OFFSET*2, y - ID_Y_OFFSET*2, mIdPaint);
 
-        canvas.drawRoundRect(new RectF(left, top, right, bottom),right,left,mBoxPaint);
-
+        Rect r = new Rect((int)left,(int)top,(int)right,(int)bottom);
+        double outer_radius = 0.5 * Math.sqrt(r.height() * r.height() + r.width() * r.width());
+        smiley = new SmileyFace((float)outer_radius);
         drawFaceAnnotations(canvas);
+        smiley.draw(canvas);
     }
 
     /**
@@ -204,19 +147,5 @@ public class FaceGraphic extends GraphicOverlay.Graphic {
         for(Point p : landmarks){
             canvas.drawPoint(p.x,p.y,paint);
         }
-
-        // 1. draw face
-        canvas.drawCircle(radius+adjust, radius+adjust, radius, facePaint);
-
-        // 2. draw mouth
-        mePaint.setStyle(Paint.Style.STROKE);
-
-        canvas.drawPath(mouthPath, mePaint);
-
-        // 3. draw eyes
-        mePaint.setStyle(Paint.Style.FILL);
-        canvas.drawArc(eyeLeftRectF, 0, 360, true, mePaint);
-        canvas.drawArc(eyeRightRectF, 0, 360, true, mePaint);
     }
-
 }
