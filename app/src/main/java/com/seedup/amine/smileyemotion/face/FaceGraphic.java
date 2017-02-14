@@ -17,6 +17,8 @@ import android.util.Log;
 import com.google.android.gms.vision.face.Face;
 import com.google.android.gms.vision.face.Landmark;
 import com.seedup.amine.smileyemotion.camera.GraphicOverlay;
+import com.seedup.amine.smileyemotion.face.shapes.Circle;
+import com.seedup.amine.smileyemotion.face.shapes.MyLandmark;
 import com.seedup.amine.smileyemotion.face.shapes.SmileyFace;
 
 import java.util.ArrayList;
@@ -30,8 +32,6 @@ import java.util.List;
 public class FaceGraphic extends GraphicOverlay.Graphic {
     private static final float ID_TEXT_SIZE = 40.0f;
     private static final float BOX_STROKE_WIDTH = 5.0f;
-    private static final float ID_Y_OFFSET = 50.0f;
-    private static final float ID_X_OFFSET = -50.0f;
 
     private float mFaceHappiness;
     private float mEyeLeftOpen;
@@ -116,9 +116,12 @@ public class FaceGraphic extends GraphicOverlay.Graphic {
 //        canvas.drawText("right eye: " + String.format("%.2f", mEyeRightOpen), x + ID_X_OFFSET * 2, y + ID_Y_OFFSET * 2, mIdPaint);
 //        canvas.drawText("left eye: " + String.format("%.2f", mEyeLeftOpen), x - ID_X_OFFSET*2, y - ID_Y_OFFSET*2, mIdPaint);
 
-        Rect r = new Rect((int)left,(int)top,(int)right,(int)bottom);
-        double outer_radius = 0.5 * Math.sqrt(r.height() * r.height() + r.width() * r.width());
-        smiley = new SmileyFace((float)outer_radius);
+        RectF r = new RectF(left,top,right,bottom);
+        Point center = new Point((int)((r.left + r.right)/2), (int)((r.top + r.bottom)/2));
+        Circle circle = new Circle(center.x, center.y, (int)face.getWidth());
+        circle.draw(canvas, mBoxPaint);
+        int radius = circle.getRadius();
+        smiley = new SmileyFace(face.getWidth(), center);
         drawFaceAnnotations(canvas);
         smiley.draw(canvas);
     }
@@ -136,16 +139,16 @@ public class FaceGraphic extends GraphicOverlay.Graphic {
         paint.setColor(Color.GREEN);
         paint.setStyle(Paint.Style.STROKE);
         paint.setStrokeWidth(10);
-        List<Point> landmarks = new ArrayList<>();
+        List<MyLandmark> landmarks = new ArrayList<>();
 
         for (Landmark landmark : mFace.getLandmarks()) {
             int cx = (int) translateX(landmark.getPosition().x);
             int cy = (int) translateY(landmark.getPosition().y);
-            landmarks.add(new Point(cx, cy));
+            landmarks.add(new MyLandmark(landmark.getType(), cx, cy));
         }
 
-        for(Point p : landmarks){
-            canvas.drawPoint(p.x,p.y,paint);
+        for(MyLandmark p : landmarks){
+            p.draw(canvas,paint);
         }
     }
 }

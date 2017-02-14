@@ -7,29 +7,28 @@ package com.seedup.amine.smileyemotion.face.shapes;
 import android.graphics.Canvas;
 import android.graphics.CornerPathEffect;
 import android.graphics.Paint;
-import android.graphics.Path;
+import android.graphics.Point;
 import android.graphics.RectF;
 import android.util.Log;
 
 public class SmileyFace {
 
-    Paint facePaint;
-    Paint mePaint;
+    private Paint facePaint;
+    private Paint mePaint;
 
+    private Point center;
 
-    float radius;
-    float adjust;
+    private float radius;
+    private float adjustX;
+    private float adjustY;
 
-    float mouthLeftX, mouthRightX, mouthTopY, mouthBottomY;
-    RectF mouthRectF;
-    Path mouthPath;
+    public Mouth mouth;
+    public Eye leftEye, rightEye;
+    public Circle circle;
 
-    RectF eyeLeftRectF, eyeRightRectF;
-    float eyeLeftX, eyeRightx, eyeTopY, eyeBottomY;
-
-
-    public SmileyFace(float radius){
+    public SmileyFace(float radius, Point center) {
         this.radius= radius;
+        this.center = center;
 
         facePaint = new Paint();
         facePaint.setColor(0xfffed325); // yellow
@@ -50,53 +49,64 @@ public class SmileyFace {
         mePaint.setAntiAlias(true);
         mePaint.setStrokeWidth(radius / 14.0f);
 
-
-
-        adjust = radius / 3.2f;
-
+        adjustX = center.x;
+        adjustY = center.y;
 
         // Left Eye
-        eyeLeftX = radius-(radius*0.43f);
-        eyeRightx = eyeLeftX+ (radius*0.3f);
-        eyeTopY = radius-(radius*0.5f);
-        eyeBottomY = eyeTopY + (radius*0.4f);
+        int eyeLeftX = (int)(radius-(radius*0.43f));
+        int eyeRightX = (int)(eyeLeftX+ (radius*0.3f));
+        int eyeTopY = (int)(radius-(radius*0.5f));
+        int eyeBottomY = (int)(eyeTopY + (radius*0.4f));
+        RectF eyeLeftRectF = new RectF(eyeLeftX + adjustX,eyeTopY+ adjustY,eyeRightX+ adjustX,eyeBottomY+ adjustY);
 
-        eyeLeftRectF = new RectF(eyeLeftX+adjust,eyeTopY+adjust,eyeRightx+adjust,eyeBottomY+adjust);
+        leftEye = new Eye(eyeLeftX, eyeRightX, eyeTopY, eyeBottomY, eyeLeftRectF);
 
         // Right Eye
-        eyeLeftX = eyeRightx + (radius*0.3f);
-        eyeRightx = eyeLeftX + (radius*0.3f);
+        eyeLeftX = (int)(eyeRightX + (radius*0.3f));
+        eyeRightX = (int)(eyeLeftX + (radius*0.3f));
+        RectF eyeRightRectF = new RectF(eyeLeftX+ adjustX,eyeTopY+ adjustY,eyeRightX+ adjustX,eyeBottomY+ adjustY);
 
-        eyeRightRectF = new RectF(eyeLeftX+adjust,eyeTopY+adjust,eyeRightx+adjust,eyeBottomY+adjust);
-
+        rightEye = new Eye(eyeLeftX, eyeRightX, eyeTopY, eyeBottomY, eyeRightRectF);
 
         // Smiley Mouth
-        mouthLeftX = radius-(radius/2.0f);
-        mouthRightX = mouthLeftX+ radius;
-        mouthTopY = radius - (radius*0.2f);
-        mouthBottomY = mouthTopY + (radius*0.5f);
+        int mouthLeftX = (int)(radius-(radius/2.0f));
+        int mouthRightX = (int)(mouthLeftX+ radius);
+        int mouthTopY = (int)(radius - (radius*0.2f));
+        int mouthBottomY = (int)(mouthTopY + (radius*0.5f));
+        RectF mouthRectF = new RectF(mouthLeftX+ adjustX,mouthTopY+ adjustY,mouthRightX+ adjustX,mouthBottomY+ adjustY);
 
-        mouthRectF = new RectF(mouthLeftX+adjust,mouthTopY+adjust,mouthRightX+adjust,mouthBottomY+adjust);
-        mouthPath = new Path();
+        mouth = new Mouth(mouthLeftX, mouthRightX, mouthTopY, mouthBottomY,30, 120, mouthRectF);
 
-        mouthPath.arcTo(mouthRectF, 30, 120, true);
+        // Smiley Face
+        circle = new Circle((int)(radius + adjustX), (int)(radius + adjustY), (int)radius);
+        Log.d("SMILEY ","RADIUS :::" + radius + " ");
+        Log.d("SMILEY ","ADJUST X :::" + adjustX + " ");
+        Log.d("SMILEY ","X :::" + adjustX + radius + " ");
+        Log.d("SMILEY ","CENTER X" + center.x + " ");
 
     }
 
     public void draw(Canvas canvas) {
 
         // 1. draw face
-        canvas.drawCircle(radius+adjust, radius+adjust, radius, facePaint);
+        circle.draw(canvas, facePaint);
 
         // 2. draw mouth
-        mePaint.setStyle(Paint.Style.STROKE);
-
-        canvas.drawPath(mouthPath, mePaint);
+        mouth.draw(canvas, mePaint);
 
         // 3. draw eyes
-        mePaint.setStyle(Paint.Style.FILL);
-        canvas.drawArc(eyeLeftRectF, 0, 360, true, mePaint);
-        canvas.drawArc(eyeRightRectF, 0, 360, true, mePaint);
+        leftEye.draw(canvas, mePaint);
+        rightEye.draw(canvas, mePaint);
 
     }
+
+    private void clear(Canvas canvas) {
+        canvas.drawColor(0xfffed325);
+    }
+
+    public void update(Canvas canvas) {
+        clear(canvas);
+        draw(canvas);
+    }
+
 }
