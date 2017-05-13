@@ -11,11 +11,6 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.Volley;
 
-/**
- * Created by Akshay Raj on 7/17/2016.
- * Snow Corporation Inc.
- * www.snowcorp.org
- */
 public class MyApplication extends Application {
     public static final String TAG = MyApplication.class.getSimpleName();
     private RequestQueue mRequestQueue;

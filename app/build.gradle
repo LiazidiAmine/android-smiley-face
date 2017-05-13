@@ -1,8 +1,8 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 24
-    buildToolsVersion "24.0.2"
+    compileSdkVersion 25
+    buildToolsVersion '25.0.0'
     defaultConfig {
         applicationId "com.seedup.amine.smileyemotion"
         minSdkVersion 19
@@ -30,8 +30,8 @@ dependencies {
     })
     compile 'com.facebook.android:facebook-android-sdk:[4,5)'
     testCompile 'junit:junit:4.12'
-    compile 'com.android.support:support-v4:24.2.0'
-    compile 'com.android.support:design:24.2.0'
+    compile 'com.android.support:support-v4:25.0.0'
+    compile 'com.android.support:design:25.0.0'
     compile 'com.google.android.gms:play-services-vision:9.4.0+'
     compile 'dev.dworks.libs:volleyplus:+'
     compile 'com.google.android.gms:play-services-appindexing:9.4.0'

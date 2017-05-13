@@ -148,7 +148,7 @@ public class FaceGraphic extends GraphicOverlay.Graphic {
         }
 
         for(MyLandmark p : landmarks){
-            p.draw(canvas,paint);
+            //p.draw(canvas,paint);
         }
     }
 }

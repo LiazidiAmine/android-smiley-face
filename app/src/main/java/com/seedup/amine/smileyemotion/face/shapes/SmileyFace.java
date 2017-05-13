@@ -49,8 +49,8 @@ public class SmileyFace {
         mePaint.setAntiAlias(true);
         mePaint.setStrokeWidth(radius / 14.0f);
 
-        adjustX = center.x;
-        adjustY = center.y;
+        adjustX = center.x - radius;
+        adjustY = center.y - radius;
 
         // Left Eye
         int eyeLeftX = (int)(radius-(radius*0.43f));
